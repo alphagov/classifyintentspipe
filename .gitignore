@@ -1,0 +1,13 @@
+# Temporary files
+
+.*.swp
+*.pyc
+.DS_Store
+__pycache__
+Icon
+
+# Data files
+
+*.pkl
+*.csv
+*.gsheet
