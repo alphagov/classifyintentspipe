@@ -1,1 +1,63 @@
-# classifyintentspipe
+# Using machine learning to classify user comments on gov.uk
+
+This repo contains code used to automate the classification of responses to the user intent survey conducted on GOV.UK.
+
+The project is described in the [blog post](https://gdsdata.blog.gov.uk/2016/12/20/using-machine-learning-to-classify-user-comments-on-gov-uk/)
+
+## Requirements
+
+Nominally this application requires the following:
+
+* Python 3.5
+* gnu make (required for using makefile)
+
+I would recommend setting up an environment using anaconda or venv before proceeding. `pip install -r requirements.txt` can then be used to install the required packages.
+The only out of the ordinary requirement is the [classifyintents](https://github.com/ukgovdatascience/eesectors) package, developed to handle the cleaning of the data; this is installed with the above step.
+
+## Instructions
+
+To execute run `make` from the root directory.
+
+To upgrade to the latest version of classifyintents run:
+
+```make init``` from the root.
+
+More instructions are provided in the [makefile](makefile)
+
+## What's actually here:
+
+* scripts/create_training_set.py: Creates a training set from multiple disparately formatted data that have been manually classified to create a single authoritative training set.
+
+* cleaner.py: Conducts initial cleaning of a dataset prior to modelling or predicting.
+
+```
+python cleaner.py <input file> <output file>
+```
+
+* trainer.py: Trains model using data output as a pickle object by cleaner.py.
+
+```
+python trainer.py <cleaned data> <model object>
+```
+
+* predictor.py: Makes predictions on data output by cleaner.py, using the model retrained by modeller.py.
+
+```
+python predictor.py <input data> <model object>
+```
+
+### Folders
+
+Note that for privacy reasons, no data are stored in this repository. `.gitkeep` files are used to retain the following directory structure:
+
+* input_data
+	* Contains raw downloads from survey monkey prior to being classified using predictor.py
+* models
+	* pickle objects of the trained models are stored here.
+* output_data
+	* Cleaned data produced by cleaner.py are stored here
+        * Predicted data which has been classified using the predicted script.
+
+# Next steps
+
+This work is due to be revisited in 2017.
