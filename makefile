@@ -8,7 +8,7 @@
 #   At present manual classification of the survey responses is 
 #   done in google sheets. These classes need to be combined with
 #   the raw data before they can be used for training. This step
-#   is completed by scripts/create_training_set.py. This is hard
+#   is completed by create_training_set.py. This is hard
 #   coded, as teh step will be removed in future version.
 #
 #   2: Clean the data:
@@ -32,8 +32,8 @@ clean : output_data/cleaned/cleaned.pkl
 train : models/adaboost_test.pkl
 predict : output_data/classified/october.csv 
 
-training_data/manually_classified_training_data.csv: scripts/create_training_set.py
-	python scripts/create_training_set.py 
+training_data/manually_classified_training_data.csv: create_training_set.py
+	python create_training_set.py 
 
 output_data/cleaned/cleaned.pkl : cleaner.py
 	python cleaner.py training_data/training_data.csv output_data/cleaned/cleaned.pkl
