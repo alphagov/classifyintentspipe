@@ -42,7 +42,7 @@ python cleaner.py <input file (csv)> <output file (pkl)>
 python trainer.py <cleaned data (pkl)> <model object (pkl)>
 ```
 
-* predictor.py: Makes predictions on newly aquired data downloaded from surveymonkey, using the model retrained by trainer.py.
+* predictor.py: Makes predictions on newly aquired data downloaded from surveymonkey, using the model trained by trainer.py.
 
 ```
 python predictor.py <input data (csv)> <model object (pkl)>
