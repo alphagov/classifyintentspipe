@@ -92,12 +92,16 @@ def main():
     # Concatenate easy_nones with intent.data to ensureNow merge the api lookup data into intent.raw
     
     output = intent.raw.merge(
-            right=intent.data_full.loc[:,['respondent_ID','page','section','org']],
+            right=intent.data_full.loc[:,['respondent_ID','start_date','end_date','page','section','org']],
             how='left',
             left_on='RespondentID',
             right_on='respondent_ID'
             )
     
+    # Remove the rather unhelpful US system dates, retaining only the clean ones.
+
+    output.drop(['RespondentID','StartDate','EndDate'],axis=1,inplace=True)
+
     # Save the file out
     
     output_file = join(
