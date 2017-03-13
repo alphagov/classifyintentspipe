@@ -128,7 +128,7 @@ def main():
     urls1.drop_duplicates(inplace=True)
     urls1['lookup_date'] = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.now())  
 
-    urls1.to_csv(url_file)
+    urls1.to_csv(url_file, index=False)
 
 if __name__ == '__main__':
         main()
