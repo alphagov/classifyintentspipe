@@ -10,6 +10,7 @@ import pandas as pd
 import numpy as np
 import pickle, sys
 from datetime import datetime
+import csv
 
 # Handle command line arguments
 
@@ -126,9 +127,10 @@ def main():
 
     urls1 = urls.loc[:,['full_url' ,'page', 'section', 'org']]
     urls1.drop_duplicates(inplace=True)
+    urls1.replace('^null$', np.nan, regex=True, inplace=True)
     urls1['lookup_date'] = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.now())  
 
-    urls1.to_csv(url_file, index=False)
+    urls1.to_csv(url_file, index=False, quoting=csv.QUOTE_NONNUMERIC)
 
 if __name__ == '__main__':
         main()
