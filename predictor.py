@@ -9,6 +9,7 @@ from os.path import basename, join, splitext
 import pandas as pd
 import numpy as np
 import pickle, sys
+from datetime import datetime
 
 # Handle command line arguments
 
@@ -123,7 +124,11 @@ def main():
 
     print('***** Saving url lookups to ', url_file, ' *****')    
 
-    urls.to_csv(url_file)
+    urls1 = urls.loc[:,['page', 'section', 'org']]
+    urls1.drop_duplicates(inplace=True)
+    urls1['lookup_date'] = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.now())  
+
+    urls1.to_csv(url_file)
 
 if __name__ == '__main__':
         main()
