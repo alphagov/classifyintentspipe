@@ -92,7 +92,7 @@ def main():
     
     # Concatenate easy_nones with intent.data to ensureNow merge the api lookup data into intent.raw
         
-    urls = intent.data_full.loc[:,['respondent_ID','start_date','end_date','page','section','org']]
+    urls = intent.data_full.loc[:,['respondent_ID','start_date','end_date','full_url','page','section','org']]
 
     output = intent.raw.merge(
             right=urls,
@@ -104,7 +104,7 @@ def main():
         
     # Remove the rather unhelpful US system dates, retaining only the clean ones.
 
-    output.drop(['RespondentID','StartDate','EndDate'],axis=1,inplace=True)
+    output.drop(['RespondentID','StartDate','EndDate','Custom Data'],axis=1,inplace=True)
 
     # Save the file out
     
