@@ -124,7 +124,7 @@ def main():
 
     print('***** Saving url lookups to ', url_file, ' *****')    
 
-    urls1 = urls.loc[:,['page', 'section', 'org']]
+    urls1 = urls.loc[:,['full_url' ,'page', 'section', 'org']]
     urls1.drop_duplicates(inplace=True)
     urls1['lookup_date'] = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.now())  
 
