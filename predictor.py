@@ -90,14 +90,17 @@ def main():
     intent.data['respondent_ID'] = intent.data['respondent_ID'].astype('int')   
     
     # Concatenate easy_nones with intent.data to ensureNow merge the api lookup data into intent.raw
-    
+        
+    urls = intent.data_full.loc[:,['respondent_ID','start_date','end_date','page','section','org']]
+
     output = intent.raw.merge(
-            right=intent.data_full.loc[:,['respondent_ID','start_date','end_date','page','section','org']],
+            right=urls,
             how='left',
             left_on='RespondentID',
             right_on='respondent_ID'
             )
     
+        
     # Remove the rather unhelpful US system dates, retaining only the clean ones.
 
     output.drop(['RespondentID','StartDate','EndDate'],axis=1,inplace=True)
@@ -109,9 +112,18 @@ def main():
             splitext(basename(input_file))[0] + '_classified.csv'
             )
 
+    url_file = join(
+            'output_data/',
+             splitext(basename(input_file))[0] + '_urls.csv'
+            )
+
     print('***** Saving predictions to ', output_file, ' *****')    
 
     output.to_csv(output_file)
+
+    print('***** Saving url lookups to ', url_file, ' *****')    
+
+    urls.to_csv(url_file)
 
 if __name__ == '__main__':
         main()
