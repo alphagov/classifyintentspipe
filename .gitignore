@@ -11,3 +11,8 @@ Icon
 *.pkl
 *.csv
 *.gsheet
+bin
+include
+lib
+pip-selfcheck.json
+.Python
