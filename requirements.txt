@@ -1,5 +1,5 @@
 appdirs==1.4.3
-classifyintents==0.5.1
+git+git://github.com/ukgovdatascience/classifyintents.git@7a3bda943681e3eb272f2cd42b7c19a79a06742d
 deap==1.0.1
 numpy==1.11.2
 packaging==16.8

@@ -64,7 +64,8 @@ def main():
     # Run the prediction
 
     predicted_classes = exported_pipeline.predict(intent.cleaned)
-
+    
+    print('Predicted classes:')
     print(np.bincount(predicted_classes))
 
     pd.Series(predicted_classes).to_csv('predicted_classes.csv')
@@ -83,29 +84,31 @@ def main():
     # Label the raw dataset with 'ok' and 'nones'
 
     intent.raw['code'] = ''
-    intent.raw.loc[intent.raw['RespondentID'].isin(predicted_classes),'code'] = 'ok'
-    intent.raw.loc[intent.raw['RespondentID'].isin(easy_nones),'code'] = 'none'
+    intent.raw.loc[intent.raw['respondent_ID'].isin(predicted_classes),'code'] = 'ok'
+    intent.raw.loc[intent.raw['respondent_ID'].isin(easy_nones),'code'] = 'none'
     
     # Standardise the column type for respondent ID, for merging
     
-    intent.raw['RespondentID'] = intent.raw['RespondentID'].astype('int')
+    intent.raw['respondent_ID'] = intent.raw['respondent_ID'].astype('int')
     intent.data['respondent_ID'] = intent.data['respondent_ID'].astype('int')   
     
-    # Concatenate easy_nones with intent.data to ensureNow merge the api lookup data into intent.raw
+    # Concatenate easy_nones with intent.data to ensure
+    # Now merge the api lookup data into intent.raw
         
     urls = intent.data_full.loc[:,['respondent_ID','start_date','end_date','full_url','page','section','org']]
 
     output = intent.raw.merge(
             right=urls,
             how='left',
-            left_on='RespondentID',
+            left_on='respondent_ID',
             right_on='respondent_ID'
             )
     
         
     # Remove the rather unhelpful US system dates, retaining only the clean ones.
-
-    output.drop(['RespondentID','StartDate','EndDate','Custom Data'],axis=1,inplace=True)
+    
+    # No longer need to drop US dates as these do not exist!
+    #output.drop(['respondent_ID','start_date','end_date','full_url'],axis=1,inplace=True)
 
     # Save the file out
     
