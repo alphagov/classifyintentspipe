@@ -11,7 +11,7 @@ import numpy as np
 import pickle, sys
 from datetime import datetime
 import csv
-
+from piiremover import pii_remover
 # Handle command line arguments
 
 input_file = sys.argv[1]
@@ -24,6 +24,11 @@ def main():
     intent = survey()
 
     intent.load(input_file)
+
+    # Run the pii_remover on all the free text fields
+
+    comment_cols = [i for i in intent.raw.columns if 'comment' in i] 
+    intent.raw.loc[:,comment_cols] = intent.raw.loc[:,comment_cols].applymap(pii_remover)
 
     # Clean the raw dataset. This creates a dataframe called `intent.data`.
 
