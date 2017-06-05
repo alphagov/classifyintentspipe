@@ -18,7 +18,7 @@ The only out of the ordinary requirement is the [classifyintents](https://github
 
 ## Instructions
 
-** When working with smartsurvey data the data must first be reformatted by running `Rscript reformat.R input.csv output.csv`. **
+**When working with smartsurvey data the data must first be reformatted by running `Rscript reformat.R input.csv output.csv`.**
 
 To execute, run `make` from the root directory.
 
