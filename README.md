@@ -64,6 +64,17 @@ Note that for privacy reasons, no data are stored in this repository. `.gitkeep`
 * training_data
     * Pre-classified training data is stored here.
 
+### Assessing PII removal performance
+
+To assess the performance of PII removal run the script pii_test_cases.py:
+
+```
+python pii_test_cases.py <input_data/raw.csv> <output_data/classified/classified.csv> <output.csv>
+```
+
+This will take all the cases in which PII was identified, and combine these with the uncleansed examples to facilitate comparison.
+From this comparison, new test cases can be created to improve the performance of the PII removal.
+
 # Next steps
 
 This work is due to be revisited in 2017.
