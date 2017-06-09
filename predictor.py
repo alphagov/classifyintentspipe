@@ -23,6 +23,7 @@ def clean_if(x):
     scrubber = scrubadub.Scrubber()
     scrubber.remove_detector('name')
     scrubber.remove_detector('url')
+    scrubber.remove_detector('vehicle')
     if isinstance(x, str):
         x = scrubber.clean(x)
     return(x)
@@ -106,8 +107,11 @@ def main():
     
     # Run the pii_remover on all the free text fields
 
+    print('Removing PII...')
     comment_cols = [i for i in intent.raw.columns if 'comment' in i] 
     intent.raw.loc[:,comment_cols] = intent.raw.loc[:,comment_cols].applymap(clean_if)
+
+    print('...done')
 
 # Concatenate easy_nones with intent.data to ensure
     # Now merge the api lookup data into intent.raw
@@ -121,12 +125,6 @@ def main():
             right_on='respondent_ID'
             )
     
-        
-    # Remove the rather unhelpful US system dates, retaining only the clean ones.
-    
-    # No longer need to drop US dates as these do not exist!
-    #output.drop(['respondent_ID','start_date','end_date','full_url'],axis=1,inplace=True)
-
     # Save the file out
     
     output_file = join(
