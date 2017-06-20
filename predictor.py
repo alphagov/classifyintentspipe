@@ -11,11 +11,22 @@ import numpy as np
 import pickle, sys
 from datetime import datetime
 import csv
-from piiremover import pii_remover
+import scrubadub
+
 # Handle command line arguments
 
 input_file = sys.argv[1]
 model = sys.argv[2]
+
+def clean_if(x):
+
+    scrubber = scrubadub.Scrubber()
+    scrubber.remove_detector('name')
+    scrubber.remove_detector('url')
+    if isinstance(x, str):
+        x = scrubber.clean(x)
+    return(x)
+
 
 def main():
     
@@ -25,10 +36,6 @@ def main():
 
     intent.load(input_file)
 
-    # Run the pii_remover on all the free text fields
-
-    comment_cols = [i for i in intent.raw.columns if 'comment' in i] 
-    intent.raw.loc[:,comment_cols] = intent.raw.loc[:,comment_cols].applymap(pii_remover)
 
     # Clean the raw dataset. This creates a dataframe called `intent.data`.
 
@@ -97,7 +104,12 @@ def main():
     intent.raw['respondent_ID'] = intent.raw['respondent_ID'].astype('int')
     intent.data['respondent_ID'] = intent.data['respondent_ID'].astype('int')   
     
-    # Concatenate easy_nones with intent.data to ensure
+    # Run the pii_remover on all the free text fields
+
+    comment_cols = [i for i in intent.raw.columns if 'comment' in i] 
+    intent.raw.loc[:,comment_cols] = intent.raw.loc[:,comment_cols].applymap(clean_if)
+
+# Concatenate easy_nones with intent.data to ensure
     # Now merge the api lookup data into intent.raw
         
     urls = intent.data_full.loc[:,['respondent_ID','start_date','end_date','full_url','page','section','org']]
