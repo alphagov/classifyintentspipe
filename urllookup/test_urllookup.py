@@ -1,9 +1,12 @@
+import pytest
 import unittest
 from urllookup import *
 import pandas as pd
 
 class TestCleanUrls(unittest.TestCase):
-
+    """
+    Test urllookup module
+    """
     def setUp(self):
         
         # Load in test data
@@ -24,7 +27,7 @@ class TestCleanUrls(unittest.TestCase):
 
         self.urls = pd.Series(self.urls, name='full_url')
         
-        self.urlsclass = govukurls(self.urls)
+        self.urlsclass = GovukUrls(self.urls)
 
 #    def tearDown(self):
 #
