@@ -1,42 +1,41 @@
+"""Write a database dump to csv and remove PII"""
 # coding: utf-8
 
-import pandas as pd
-import scrubadub
-import sqlalchemy
 import os
 import sys
-import re
-import requests
-from datetime import datetime
 import urllookup
+import pandas as pd
+import scrubadub
+import sqlalchemy as sa
 
 if len(sys.argv) > 1:
-    out = sys.argv[1]
+    OUT = sys.argv[1]
 else: 
-    out = 'database_dump.csv'
-
+    OUT = 'database_dump.csv'
 
 def main():
 
-    engine_string = (f"postgres://{os.environ['PGUSER']}:"
-            f"{os.environ['PGPASSWORD']}@{os.environ['PGHOST']}")
+    # Get database credentials from environment variables.
 
-    engine = sqlalchemy.create_engine(engine_string)
+    ENGINE_STRING = "postgres://{}:{}@{}/{}".format(os.environ['PGUSER'], \
+        os.environ['PGPASSWORD'], os.environ['PGHOST'], os.environ['PGDB'])
+    ENGINE = sa.create_engine(ENGINE_STRING)
+
 
     # Extract raw data and join with majority vote
     
     print('Extracting data from database...')
 
     df = pd.read_sql_query(
-                (
-                "select * from raw left join (select respondent_id,"
-                "vote from priority where coders is not null) p on "
-                "(raw.respondent_id = p.respondent_id) "
-                "left join (select code_id, code from codes) c on "
-                "(p.vote = c.code_id)"
-                ),
-                con=engine
-                )
+            (
+            "select * from raw left join (select respondent_id,"
+            "vote from priority where coders is not null) p on "
+            "(raw.respondent_id = p.respondent_id) "
+            "left join (select code_id, code from codes) c on "
+            "(p.vote = c.code_id)"
+            ),
+            con=ENGINE
+            )
 
     print('...done')
 
@@ -71,12 +70,12 @@ if __name__ == "__main__":
 
     # Extract and lookup the urls using content API
     
-    urls = urllookup.govukurls(df['full_url'])
+    urls = urllookup.GovukUrls(df['full_url'])
     urls.clean()
     urls.lookup()
-    urls.urlsdf.to_csv('urls_' + out, index=False, na_rep='')
+    urls.urlsdf.to_csv('urls_' + OUT, index=False, na_rep='')
     
     # Merge urls into dataframe
 
     df = pd.merge(df, urls.urlsdf)
-    df.to_csv(out, index=False, na_rep='')
+    df.to_csv(OUT, index=False, na_rep='')
