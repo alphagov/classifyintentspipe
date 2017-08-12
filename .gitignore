@@ -17,3 +17,5 @@ lib
 pip-selfcheck.json
 .Python
 share
+.env
+.Rproj.user
