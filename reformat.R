@@ -18,6 +18,7 @@ raw <- read.csv(
 colnames(raw) = make.names(colnames(raw))
 
 mapping <- c(
+  "clientID" = "client_id",
   "UserID" = "respondent_ID",
   "UserNo" = "user_no_drop",
   "Tracking.Link" = "collector_id",
