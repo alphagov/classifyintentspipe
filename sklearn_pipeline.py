@@ -12,8 +12,15 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import LabelBinarizer
 from pipeline_functions import DataFrameSelector, CommentFeatureAdder, \
         get_df, clean_PII, DateFeatureAdder
+import logging
+import logging.config
+
+logging.config.fileConfig('logging.conf')
+logger = logging.getLogger('pipeline')
 
 # Get database credentials from environment variables.
+
+logger.info('Extracting data from %s:%s', os.environ['PGHOST'], os.environ['PGDB'])
 
 ENGINE_STRING = "postgres://{}:{}@{}/{}".format(os.environ['PGUSER'], \
         os.environ['PGPASSWORD'], os.environ['PGHOST'], os.environ['PGDB'])
@@ -22,6 +29,10 @@ ENGINE = sa.create_engine(ENGINE_STRING)
 # Extract raw data and join with majority vote.
 
 df = get_df(engine=ENGINE)
+
+logger.info('Database extraction complete')
+logger.debug('Extracted %s rows and %s features from database', df.shape[0], df.shape[1])
+
 df = clean_PII(df)
 
 pkl_file = open('OFFICIAL_full_data.pkl', 'wb')

@@ -4,6 +4,9 @@ import pandas as pd
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 import scrubadub
+import logging
+import logging.config
+
 # Extract raw data and join with majority vote.
 
 def get_df(engine):
@@ -11,7 +14,8 @@ def get_df(engine):
     Extract the full raw dataset from postgres db
     """
 
-    print('Extracting data from database...')
+    logger = logging.getLogger('pipeline')
+    logger.critical("sdhfhahfk")
 
     df = pd.read_sql_query(
         (
@@ -27,8 +31,6 @@ def get_df(engine):
         ),
         con=engine
         )
-
-    print('...done')
 
     return df
 
