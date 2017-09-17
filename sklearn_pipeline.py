@@ -60,7 +60,7 @@ X = df.drop(drop_columns, axis=1)
 logger.debug('Encoding vote with one-hotencoding')
 
 encoder = LabelBinarizer()
-y = encoder.fit_transform(df['vote'])
+#y = encoder.fit_transform(df['vote'])
 
 # This creates a matrix of m * k where there are k classes.
 # We then need to select a column to be the target, in this case

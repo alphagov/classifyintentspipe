@@ -22,3 +22,4 @@ packrat/lib*/
 .ipynb_checkpoints
 .env
 *.log
+.cache

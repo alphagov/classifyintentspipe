@@ -152,6 +152,9 @@ class DateFeatureAdder(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
         return self
     def transform(self, X):
+
+        logger.debug('Running DateFeatureAdder.transform()')
+        
         out = np.empty([X.shape[0], 0])
         X.is_copy = False # Squash slice warning from pandas
         X_cols = list(X)
@@ -186,7 +189,7 @@ class DateFeatureAdder(BaseEstimator, TransformerMixin):
             # No nans are present in the pandas dataframe, so something in
             # this class creates them (six at last count).
 
-            print('DateFeatureAdder converting', np.isnan(out).sum(), 'nans to zeros.')
+            logger.debug('DateFeatureAdder converting %s nans to zeros.', np.isnan(out).sum())
             out = np.nan_to_num(out)
             return out
 
@@ -206,19 +209,19 @@ class CommentFeatureAdder(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
         return self
     def transform(self, X):
-        #out = np.empty([X.shape[0],0])
-        #X.is_copy=False # Squash slice warning from pandas
+        out = np.empty([X.shape[0],0])
+        X.is_copy=False # Squash slice warning from pandas
         # TODO: Need to iterate through the rows and columns here
         X_cols = list(X)
         for i in X_cols:
 
-            X[i] = X[i].str.strip()
-            X[i] = X[i].str.lower()
-            X[i] = [len(i) for i in X[i]]
+            #X[i] = X[i].str.strip()
+            #X[i] = X[i].str.lower()
+            #X[i] = [len(i) for i in X[i]]
             # Character Count
-            #out = np.c_[out, [len(i) for i in X[i]]
+            out = np.c_[out, [len(j) for j in X[i]]]
             # Caps ratio
-            #out = np.c_[out, sum([i.isupper() for i in x])/len(x)]
+            #out = np.c_[out, sum([j.isupper() for j in X[i]])/len(X[i])]
             # Exclamation ratio
-            #out = np.c_[out, sum([i == '!' for i in x]) / len(x)]
-        return X
+            #out = np.c_[out, sum([j == '!' for j in X[i]]) / len(X[i])]
+        return out
