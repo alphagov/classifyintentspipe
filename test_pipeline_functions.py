@@ -8,7 +8,8 @@ import pandas as pd
 import numpy as np
 import sqlalchemy as sa
 from pipeline_functions import DataFrameConverter, DataFrameSelector, \
-        CommentFeatureAdder, get_df, clean_PII, DateFeatureAdder, save_pickle
+        CommentFeatureAdder, DateFeatureAdder, save_pickle, \
+        capsratio, exclratio, strlen
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import FeatureUnion
 from sklearn.pipeline import Pipeline
@@ -118,7 +119,6 @@ class TestPipelineFunctions(object):
         assert df.shape[1] == 8
         assert df.dtype == np.float64
 
-    @pytest.mark.xfail()
     def test_CommentFeatureAdder(self):
         """
         Test that CommentFeatureAdder returns the requisite columns
@@ -134,3 +134,29 @@ class TestPipelineFunctions(object):
         df = test_pipeline.fit_transform(self.df)
 
         assert isinstance(df, np.ndarray)
+        assert df.shape[1] == 3
+
+    def test_capsratio(self):
+        """
+        Test that capsratio() works as expected
+        """
+        
+        assert capsratio('The') == 0.3333
+        assert capsratio(None) == 0
+
+    def test_exclratio(self):
+        """
+        Test that exclratio() works as expected
+        """
+        
+        assert exclratio('Ag!') == 0.3333
+        assert exclratio(None) == 0
+
+    def test_strlen(self):
+        """
+        Test that strlen() works as expected
+        """
+
+        test_strings = pd.Series([None, 'a', 'ab', 'abc', 'abcd'])
+
+        assert set(strlen(test_strings)) == set([0, 1, 2, 3, 4])

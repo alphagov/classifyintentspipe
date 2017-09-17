@@ -97,7 +97,7 @@ date_pipeline = Pipeline([
 
 comment_features = [i for i in X.columns if 'comment' in i]
 
-logger.debug('Generating commen features on %s', comment_features)
+logger.debug('Generating comment features on %s', comment_features)
 
 comment_pipeline = Pipeline([
     ('selector', DataFrameSelector(comment_features)),
@@ -113,6 +113,8 @@ full_pipeline = FeatureUnion(transformer_list=[
 logger.debug('Running .fit_transform on full_pipeline')
 
 transformed_dataset = full_pipeline.fit_transform(X)
+
+logger.info('Transformed dataset shape is %s ', transformed_dataset.shape)
 
 #foo = full_pipeline.fit_transform(X)
 
