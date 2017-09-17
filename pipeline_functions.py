@@ -210,18 +210,59 @@ class CommentFeatureAdder(BaseEstimator, TransformerMixin):
         return self
     def transform(self, X):
         out = np.empty([X.shape[0],0])
-        X.is_copy=False # Squash slice warning from pandas
-        # TODO: Need to iterate through the rows and columns here
-        X_cols = list(X)
-        for i in X_cols:
 
-            #X[i] = X[i].str.strip()
-            #X[i] = X[i].str.lower()
-            #X[i] = [len(i) for i in X[i]]
+        # Expecting a pandas dataframe here
+        assert isinstance(X, pd.core.frame.DataFrame)
+
+        X.is_copy=False # Squash slice warning from pandas
+        X_cols = list(X)
+
+        # Iterate through the columns, and create features which are appended
+        # the np.ndarray out.
+
+        for i in X_cols:
+            
+            # Operates on the individual series
+
+            X[i] = X[i].str.strip()
+            X[i] = X[i].str.lower()
+            
             # Character Count
-            out = np.c_[out, [len(j) for j in X[i]]]
+            out = np.c_[out, strlen(X[i])]
+            
             # Caps ratio
-            #out = np.c_[out, sum([j.isupper() for j in X[i]])/len(X[i])]
+            out = np.c_[out, [capsratio(j) for j in X[i]]]
+            
             # Exclamation ratio
-            #out = np.c_[out, sum([j == '!' for j in X[i]]) / len(X[i])]
+            out = np.c_[out, [exclratio(j) for j in X[i]]]
+        
+        logger.debug('out is a %s', type(out))
+        logger.debug('Out shape is %s', out.shape)
+        logger.debug('CommentFeatureAdder converting %s nans to zeros.', np.isnan(out).sum())
+        out = np.nan_to_num(out)
         return out
+
+
+def strlen(x):
+
+    out = [np.round(len(i), 4) if i is not None else 0 for i in x]
+    return out
+
+def capsratio(x):
+
+    if isinstance(x, str):
+        out = sum([i.isupper() for i in x]) / len(x)
+        out = np.round(out, 4)
+    else:
+        out = 0
+    return out
+
+def exclratio(x):
+
+    if isinstance(x, str):
+        out = sum([j == '!' for j in x]) / len(x)
+        out = np.round(out, 4)
+    else:
+        out = 0
+    return out
+
