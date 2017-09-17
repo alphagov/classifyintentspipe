@@ -6,16 +6,51 @@ from sklearn.base import BaseEstimator, TransformerMixin
 import scrubadub
 import logging
 import logging.config
+import os
+import pickle
 
 # Extract raw data and join with majority vote.
+
+logger = logging.getLogger('pipeline')
+
+def save_pickle(obj, filename, description):
+    '''
+    Save an object to a pickle
+    '''
+
+    logger.info('Writing %s to %s', description, filename)
+
+    # Remove file dump if exists
+        
+    if os.path.exists(filename):
+        logger.warn('File %s already exists, deleting...', filename)
+        try:
+            os.remove(filename)
+        except OSError:
+            logger.error('Could not delete %s', filename)
+
+    try:
+        with open(filename, 'wb') as f:
+            pickle.dump(obj, f)
+            f.close()
+
+        # Check that the new file was produced.
+
+        assert os.path.isfile(filename), logger.error('%s was not produced', filename)
+
+        logger.info('%s succesfully written to %s', description, filename)
+
+    except AssertionError:
+
+        logging.error('Failed to write to %s', filename)
+
 
 def get_df(engine):
     """
     Extract the full raw dataset from postgres db
     """
 
-    logger = logging.getLogger('pipeline')
-    logger.critical("sdhfhahfk")
+    logger.debug('Starting query using %s', engine)
 
     df = pd.read_sql_query(
         (
@@ -32,36 +67,38 @@ def get_df(engine):
         con=engine
         )
 
+    logger.debug('Extracted %s rows and %s features from database', df.shape[0], df.shape[1])
+    
     return df
 
 # Clear PII from data
 
-def clean_if(string):
+def clean_if(string, remove_detectors=['name', 'url', 'vehicle']):
     """
     Clean a text string of PII using scrubadub
     """
-
     scrubber = scrubadub.Scrubber()
-    scrubber.remove_detector('name')
-    scrubber.remove_detector('url')
-    scrubber.remove_detector('vehicle')
+    
+    for i in remove_detectors:
+        scrubber.remove_detector(i)
     if isinstance(string, str):
         string = scrubber.clean(string)
     return(string)
 
 # Identify comment columns, and apply clean_if to each
 
-def clean_PII(df):
+def clean_PII(df, *kwargs):
     """
     Run clean_if on a all columns containing comments.
     """
+
     comment_cols = [i for i in df.columns if 'comment' in i]
 
-    print('Removing PII...')
+    logger.debug('Starting to remove PII from columns %s', comment_cols)
 
     df.loc[:,comment_cols] = df.loc[:, comment_cols].applymap(clean_if)
 
-    print('...done')
+    logger.debug('Finished removing PII.')
 
     return df
 
@@ -71,7 +108,9 @@ class DataFrameSelector(BaseEstimator, TransformerMixin):
 
     Note that this returns a truncated pandas dataframe, not an
     np.array. This is because there are a number of string and
-    datetime manipulations that are easier on pandas objects.
+    datetime manipulations that are easier on pandas objects
+    than numpy arrays. Instead the DataFrame converter class
+    is then used to convert into a DataFrame.
     '''
     def __init__(self, attribute_names):
         self.attribute_names = attribute_names
