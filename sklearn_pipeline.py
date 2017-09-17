@@ -20,9 +20,7 @@ logger = logging.getLogger('pipeline')
 
 # Get database credentials from environment variables.
 
-ENGINE_STRING = "postgres://{}:{}@{}/{}".format(os.environ['PGUSER'], \
-        os.environ['PGPASSWORD'], os.environ['PGHOST'], os.environ['PGDB'])
-ENGINE = sa.create_engine(ENGINE_STRING)
+ENGINE = sa.create_engine(os.environ['DATABASE_URL'])
 
 logger.info('Extracting data from %s', ENGINE)
 
