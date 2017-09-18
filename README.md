@@ -12,9 +12,16 @@ Nominally this application requires the following:
 
 * Python 3.6.1
 * gnu make (required for using makefile)
+* [nbstripout](https://github.com/kynan/nbstripout)
 
 I would recommend setting up an environment using anaconda or venv before proceeding. `pip install -r requirements.txt` can then be used to install the required packages.
 The only out of the ordinary requirement is the [classifyintents](https://github.com/ukgovdatascience/classifyintents) package, developed to handle the cleaning of the data; this is installed with the above step.
+
+### nbstripout installation
+
+[nbstripout](https://github.com/kynan/nbstripout) is a tool which removes the saved data from within jupyter notebooks. Whilst the stateful nature of notebooks is useful, they are also a pain if you are dealing with potentially sensitive data. Note that nbstripout will stop the data from being seen by git, and thus impossible to push it. It won't actually remove the outputs on your local machine.
+
+See the instruction [here](https://github.com/kynan/nbstripout) for how to install. You should install it as a git filter using `npstripout --install`. 
 
 ## Instructions
 

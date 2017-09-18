@@ -4,10 +4,11 @@
 import os
 import pickle
 import scrubadub
-import sqlalchemy as sa
 import pickle
 import logging
 import logging.config
+import numpy as np
+import sqlalchemy as sa
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import FeatureUnion
 from sklearn.pipeline import Pipeline
@@ -28,6 +29,13 @@ logger.info('Extracting data from %s', ENGINE)
 
 df = get_df(engine=ENGINE)
 
+nrow = df.shape[0]
+
+df = df.dropna(subset=['vote'])
+df = df.loc[df.vote != 0, :]
+
+logger.debug('Dropped %s of %s rows where there is no target (vote) or no comment (none)', nrow - df.shape[0], nrow)
+
 logger.info('Database extraction complete')
 
 #save_pickle(df, 'OFFICIAL_database_dump_dirty.pkl', 'Raw data extarcted from db')
@@ -46,7 +54,7 @@ save_pickle(df, 'OFFICIAL_db_dump_PII_removed.pkl', 'PII cleaned data')
 
 X_id = df['respondent_id']
 
-# For now drop url until better features can be added
+# For now drop url until better url features can be added
 
 drop_columns = ['respondent_id', 'full_url', 'vote']
 logger.debug('Dropping columns %s', drop_columns)
@@ -58,16 +66,20 @@ X = df.drop(drop_columns, axis=1)
 logger.debug('Encoding vote with one-hotencoding')
 
 encoder = LabelBinarizer()
-#y = encoder.fit_transform(df['vote'])
+y_all = encoder.fit_transform(df['vote'])
 
 # This creates a matrix of m * k where there are k classes.
 # We then need to select a column to be the target, in this case
 
-#logger.debug('Encoding one hot encoding on target variable')
+y_class = [i for i, x in enumerate(np.sum(y_all, axis=0)) if x == len(df.vote[df.vote==12])]
 
-#y = df_one_hot[:,4]
+# Check that y_class codes for the ok (12) variable
 
-#print('...done')
+logger.debug('Selecting class %s as target variable', y_class)
+
+targets = y_all[:,y_class]
+
+assert sum(targets) == len(df.vote[df.vote==12])
 
 # Scale numeric features with the standard
 
@@ -121,4 +133,4 @@ logger.info('Transformed dataset shape is %s ', transformed_dataset.shape)
 # Save data out to pickle object
 
 save_pickle(transformed_dataset, 'transformed_data.pkl', 'Transformed data')
-
+save_pickle(targets, 'targets.pkl', 'Targets')

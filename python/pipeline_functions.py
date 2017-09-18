@@ -62,7 +62,7 @@ def get_df(engine):
             "vote from priority where coders is not null) p on "
             "(raw.respondent_id = p.respondent_id) "
             "left join (select code_id, code from codes) c on "
-            "(p.vote = c.code_id) limit 100"
+            "(p.vote = c.code_id)"
         ),
         con=engine
         )
