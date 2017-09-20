@@ -126,7 +126,11 @@ full_pipeline = FeatureUnion(transformer_list=[
 
 logger.debug('Running .fit_transform on full_pipeline')
 
-transformed_dataset = full_pipeline.fit_transform(X)
+try:
+    transformed_dataset = full_pipeline.fit_transform(X)
+except:
+    logger.exception('Unhandled exception while running full_pipeline.git_transform()')
+    raise
 
 logger.info('Transformed dataset shape is %s ', transformed_dataset.shape)
 
