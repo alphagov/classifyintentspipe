@@ -1,4 +1,4 @@
-"""Functions and classes for running the sklearn_pipeline script"""
+"""Functions and classes for running the feature_engineering script"""
 
 import pandas as pd
 import numpy as np
@@ -165,33 +165,49 @@ class DateFeatureAdder(BaseEstimator, TransformerMixin):
             # the actual date into a unix time object.
 
             out = np.c_[out, (X[i].astype(np.int64)/1e6)] # Unix time
+            logger.debug('Converted %s to unixtime', i)
+            
             out = np.c_[out, X[i].dt.weekday]
+            logger.debug('Converted %s to weekday', i)
+            
             out = np.c_[out, X[i].dt.dayofyear]
+            logger.debug('Converted %s to dayofyear', i)
+            
             out = np.c_[out, X[i].dt.day]
+            logger.debug('Converted %s to day', i)
+            
             out = np.c_[out, X[i].dt.week]
+            logger.debug('Converted %s to week', i)
+            
             out = np.c_[out, X[i].dt.month]
+            logger.debug('Converted %s to month', i)
+            
             out = np.c_[out, X[i].dt.year]
+            logger.debug('Converted %s to year', i)
 
             # This is a bit inelegant, because it assumes that there are
             # only two date features, if the number of date features
             # changes, this will need to be changed.
 
-            time1 = pd.to_datetime(X[X_cols[0]])
-            for j in X_cols[1:]:
-                time2 = pd.to_datetime(X[j])
-                delta = np.absolute(time2 - time1)
-                delta = delta.astype('int')
-                delta = delta / 10e+8
-                out = np.c_[out, delta]
+        time1 = pd.to_datetime(X[X_cols[0]])
+        for j in X_cols[1:]:
+            time2 = pd.to_datetime(X[j])
+            delta = np.absolute(time2 - time1)
+            delta = delta.astype('int')
+            delta = delta / 10e+8
+            out = np.c_[out, delta]
+        logger.debug('Calculated time delta on %s', i)
 
-            # Replace any nans with zero.
-            # TODO: investigate what is causing the creation of these nans.
-            # No nans are present in the pandas dataframe, so something in
-            # this class creates them (six at last count).
+        # Replace any nans with zero.
+        # TODO: investigate what is causing the creation of these nans.
+        # No nans are present in the pandas dataframe, so something in
+        # this class creates them (six at last count).
 
-            logger.debug('DateFeatureAdder converting %s nans to zeros.', np.isnan(out).sum())
-            out = np.nan_to_num(out)
-            return out
+        logger.debug('DateFeatureAdder outputs a %s', type(out))
+        logger.debug('DateFeatureAdder outputs object of shape is %s', out.shape)
+        logger.debug('DateFeatureAdder converting %s nans to zeros.', np.isnan(out).sum())
+        out = np.nan_to_num(out)
+        return out
 
 class CommentFeatureAdder(BaseEstimator, TransformerMixin):
     '''
@@ -229,17 +245,20 @@ class CommentFeatureAdder(BaseEstimator, TransformerMixin):
             
             # Character Count
             out = np.c_[out, strlen(X[i])]
+            logger.debug('Calculated string length on %s', i)
             
             # Caps ratio
             out = np.c_[out, [capsratio(j) for j in X[i]]]
+            logger.debug('Calculated capsratio on %s', i)
             
             # Exclamation ratio
             out = np.c_[out, [exclratio(j) for j in X[i]]]
         
-        logger.debug('out is a %s', type(out))
-        logger.debug('Out shape is %s', out.shape)
+        logger.debug('CommentFeatureAdder outputs a %s', type(out))
+        logger.debug('CommentFeatureAdder outputs object of shape is %s', out.shape)
         logger.debug('CommentFeatureAdder converting %s nans to zeros.', np.isnan(out).sum())
         out = np.nan_to_num(out)
+        assert out.shape == (X.shape[0], X.shape[1] * 3)
         return out
 
 

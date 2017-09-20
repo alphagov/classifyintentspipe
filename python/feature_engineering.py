@@ -35,6 +35,8 @@ df = df.dropna(subset=['vote'])
 df = df.loc[df.vote != 0, :]
 
 logger.debug('Dropped %s of %s rows where there is no target (vote) or no comment (none)', nrow - df.shape[0], nrow)
+logger.debug('Dataset shape is now %s', df.shape)
+
 
 logger.info('Database extraction complete')
 
@@ -113,7 +115,7 @@ logger.debug('Generating comment features on %s', comment_features)
 
 comment_pipeline = Pipeline([
     ('selector', DataFrameSelector(comment_features)),
-    ('str_length', CommentFeatureAdder()),
+    ('comment_features', CommentFeatureAdder()),
     ('minmax_scaler', MinMaxScaler())
     ])
 
@@ -127,6 +129,12 @@ logger.debug('Running .fit_transform on full_pipeline')
 transformed_dataset = full_pipeline.fit_transform(X)
 
 logger.info('Transformed dataset shape is %s ', transformed_dataset.shape)
+
+expected_number_of_date_features = (7 * 2) + 1
+expected_number_of_comment_features = (3 * 4)
+total_features = expected_number_of_date_features + expected_number_of_comment_features
+
+assert transformed_dataset.shape == (X.shape[0], (total_features))
 
 #foo = full_pipeline.fit_transform(X)
 
