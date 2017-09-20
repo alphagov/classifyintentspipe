@@ -241,7 +241,8 @@ class CommentFeatureAdder(BaseEstimator, TransformerMixin):
             # Operates on the individual series
 
             X[i] = X[i].str.strip()
-            X[i] = X[i].str.lower()
+            # Don't make lower case!!
+            #X[i] = X[i].str.lower()
             
             # Character Count
             out = np.c_[out, strlen(X[i])]
