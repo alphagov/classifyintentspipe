@@ -55,7 +55,7 @@ class TestPipelineFunctions(object):
         except:
             
             print('Unable to access postgres database. Loading from local file')
-            self.df = pd.read_csv('tests/test_data.csv')
+            self.df = pd.read_csv('python/tests/test_data.csv')
             pass
 
 
