@@ -87,12 +87,10 @@ def clean_if(string, remove_detectors=['name', 'url', 'vehicle']):
 
 # Identify comment columns, and apply clean_if to each
 
-def clean_PII(df, *kwargs):
+def clean_PII(df, comment_cols, *kwargs):
     """
     Run clean_if on a all columns containing comments.
     """
-
-    comment_cols = [i for i in df.columns if 'comment' in i]
 
     logger.debug('Starting to remove PII from columns %s', comment_cols)
 
@@ -244,22 +242,22 @@ class CommentFeatureAdder(BaseEstimator, TransformerMixin):
             # Don't make lower case!!
             #X[i] = X[i].str.lower()
             
-            # Character Count
+            logger.debug('Calculating strlength on %s', i)
             out = np.c_[out, strlen(X[i])]
-            logger.debug('Calculated string length on %s', i)
             
             # Caps ratio
+            logger.debug('Calculating capsratio on %s', i)
             out = np.c_[out, [capsratio(j) for j in X[i]]]
-            logger.debug('Calculated capsratio on %s', i)
             
             # Exclamation ratio
-            out = np.c_[out, [exclratio(j) for j in X[i]]]
+            #out = np.c_[out, [exclratio(j) for j in X[i]]]
+            #logger.debug('Calculated exclsratio on %s', i)
         
-        logger.debug('CommentFeatureAdder outputs a %s', type(out))
-        logger.debug('CommentFeatureAdder outputs object of shape is %s', out.shape)
+        logger.debug('CommentFeatureAdder outputs object of %s', type(out))
+        logger.debug('CommentFeatureAdder outputs object of shape %s', out.shape)
         logger.debug('CommentFeatureAdder converting %s nans to zeros.', np.isnan(out).sum())
         out = np.nan_to_num(out)
-        assert out.shape == (X.shape[0], X.shape[1] * 3)
+        assert out.shape == (X.shape[0], X.shape[1] * 2), 'CommentFeatureAdder returned wrong shape'
         return out
 
 

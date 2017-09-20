@@ -134,7 +134,7 @@ class TestPipelineFunctions(object):
         df = test_pipeline.fit_transform(self.df)
 
         assert isinstance(df, np.ndarray)
-        assert df.shape[1] == 6
+        assert df.shape[1] == 4
 
     def test_capsratio(self):
         """
