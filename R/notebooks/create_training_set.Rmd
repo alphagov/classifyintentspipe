@@ -441,12 +441,13 @@ length(unique(combined$respondent_id)) == nrow(combined_dedup)
 ```
 
 ```{r}
-file_name <- 'updated_training_set.csv'
+file_name <- file.path('../../', '2017-07-10_training_set_indexes.csv')
 
 combined_dedup %>%
   mutate(respondent_id = as.character(respondent_id)) %>%
   ungroup %>%
-  transmute(respondent_id, vote, date_added = '2017-06-24') %>%
+  left_join(codes, by = c("vote" = "code"), copy=TRUE) %>%
+  transmute(respondent_id, vote, vote_id = code_id, date_added = '2017-06-24') %>%
   write_csv(file_name)
 ```
 

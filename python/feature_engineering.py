@@ -9,6 +9,7 @@ import logging
 import logging.config
 import numpy as np
 import sqlalchemy as sa
+import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import FeatureUnion
 from sklearn.pipeline import Pipeline
@@ -31,8 +32,14 @@ df = get_df(engine=ENGINE)
 
 nrow = df.shape[0]
 
+# Get the training set
+
+data_indexes = pd.read_csv('../data/2017-06-24_training_set_indexes.csv')
+
+df = df[df['respondent_id'].isin(data_indexes['respondent_id'])]
+
 df = df.dropna(subset=['vote'])
-df = df.loc[df.vote != 0, :]
+#df = df.loc[df.vote != 0, :]
 
 logger.debug('Dropped %s of %s rows where there is no target (vote) or no comment (none)', nrow - df.shape[0], nrow)
 logger.debug('Dataset shape is now %s', df.shape)
@@ -42,7 +49,12 @@ logger.info('Database extraction complete')
 
 #save_pickle(df, 'OFFICIAL_database_dump_dirty.pkl', 'Raw data extarcted from db')
 
-df = clean_PII(df)
+comment_cols = [i for i in df.columns if 'comment' in i]
+
+df = clean_PII(df, comment_cols)
+
+#df["comment_combined"] = df["comment_why_you_came"] + " " + df["comment_where_for_help"] + \
+         #" + df["comment_further_comments"]
 
 # Save PII cleaned data to pickle
 
@@ -109,7 +121,8 @@ date_pipeline = Pipeline([
 #    ('minmax_scaler', MinMaxScaler())
 #    ])
 
-comment_features = [i for i in X.columns if 'comment' in i]
+
+comment_features = ['comment_why_you_came', 'comment_where_for_help', 'comment_further_comments']
 
 logger.debug('Generating comment features on %s', comment_features)
 
@@ -134,11 +147,12 @@ except:
 
 logger.info('Transformed dataset shape is %s ', transformed_dataset.shape)
 
-expected_number_of_date_features = (7 * 2) + 1
-expected_number_of_comment_features = (3 * 4)
+expected_number_of_date_features = (len(date_features) * 7) + 1
+expected_number_of_comment_features = (len(comment_features) * 2)
 total_features = expected_number_of_date_features + expected_number_of_comment_features
 
-assert transformed_dataset.shape == (X.shape[0], (total_features))
+assert transformed_dataset.shape == (X.shape[0], (total_features)), \
+        'Transformed dataset is the wrong shape'
 
 #foo = full_pipeline.fit_transform(X)
 
