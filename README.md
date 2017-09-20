@@ -24,7 +24,8 @@ At present new smartsurvey data is added to the postgres database in batches.
 These data are downloaded as flat files from SmartSurvey, and must be cleaned to fit the format expected by the database. This is currently done with an R script:
 
 ```r
-Rscript reformat.R input.csv output.csv`
+Rscript R/data_preparation.R input.csv output.csv
+
 ```
 
 Data can then be imported into the postgres data base by creating a temporary table as. `respondent_id` is a primary key on raw, so no duplicates are allowed. duplicate rows from temp_raw must be dropped before the two tables can be joined.
