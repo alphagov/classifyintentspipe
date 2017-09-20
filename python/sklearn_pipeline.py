@@ -44,7 +44,7 @@ df = clean_PII(df)
 
 # Save PII cleaned data to pickle
 
-save_pickle(df, 'OFFICIAL_db_dump_PII_removed.pkl', 'PII cleaned data')
+save_pickle(df, '../data/OFFICIAL_db_dump_PII_removed.pkl', 'PII cleaned data')
 
 # df column names have already been sanitized in a previous step (and in
 # future will be loaded directly from the database, so it is not necessary
@@ -132,5 +132,5 @@ logger.info('Transformed dataset shape is %s ', transformed_dataset.shape)
 
 # Save data out to pickle object
 
-save_pickle(transformed_dataset, 'transformed_data.pkl', 'Transformed data')
-save_pickle(targets, 'targets.pkl', 'Targets')
+save_pickle(transformed_dataset, '../data/transformed_data.pkl', 'Transformed data')
+save_pickle(targets, '../data/targets.pkl', 'Targets')
