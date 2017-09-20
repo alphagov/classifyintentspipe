@@ -1,0 +1,457 @@
+---
+title: "GOV.UK Intent survey coding"
+subtitle: "Building a new training set"
+author: "Matthew Upson matthew.upson@digital.cabinet-office.gov.uk"
+date: '2017-06-24'
+output: html_document
+published: TRUE
+status: process
+params:
+  bg_col: '#FFFFFF'
+  fig_height: 5
+  fig_width: 6
+---
+
+```{r setup, echo=FALSE, include=FALSE}
+
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  error = FALSE,
+  fig.width = 7
+)
+
+source('../majority_vote.R')
+
+library(dplyr)
+library(readr)
+library(ggplot2)
+library(knitr)
+library(magrittr)
+library(RPostgreSQL)
+library(govstyle)
+library(lubridate)
+
+intent <- dplyr::src_postgres(dbname = 'intent', host = '127.0.0.1')
+classified <- tbl(intent, 'classified')
+codes <- tbl(intent, 'codes')
+raw <- tbl(intent, 'raw')
+priority <- tbl(intent, 'priority')
+```
+
+# Background
+
+The first model was trained on 2016-10-26 using a training set of the first three months' data (03-05/2016). This model was trained using TPOT, and was a one-versus-all (OVA) binary classifier which could identify the 'ok' class with an f1-score of 0.88. This is the model that is described in the blog post here: https://gdsdata.blog.gov.uk/2017/03/27/reproducible-analytical-pipeline/.
+
+Since then, a significant amount of further data has been collected, some with the use of the 'Classify App' which allowed us to ensure that more than one person has viewed each survey, and that a threshold level of agreement has been reached. All the data have also been loaded into a postgresql database.
+
+The notebook documents the steps taken to build a new training set.
+
+## Summary statistics
+
+First calculate some summary statistics about the manual classification data that has been collected so far.
+
+*Note that to run these queries successfully, it is necessary to run the sql/views/priority.sql query in the classifyintentsapp repo on the postgres database without limiting it to the most recent 5000 rows (which is the default behaviour of this view when operating behind the classify app). The view should be recreated with a different name if running this query on the live database, as allowing the priority view to be recreated over the whole dataset slows the classification process significantly.*
+
+
+```{r}
+
+monthly_breakdown <- raw %>% 
+  collect %>%
+  mutate(
+    date = ceiling_date(start_date, unit='months')
+    ) %>%
+  group_by(date) %>%
+  tally
+
+```
+
+```{r}
+
+monthly_breakdown %>%
+  mutate(date = as.Date(date)) %>%
+  ggplot +
+  aes(
+    x = date, 
+    y = n
+    ) +
+  geom_bar(
+    stat = 'identity',
+    fill = gov_cols['purple']
+    ) +
+  scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") +
+  theme_gov() +
+  coord_flip() +
+  ylab('Date ') + 
+  ggtitle('Surveys classified per month') +
+  theme(text=element_text(family="Helvetica", size=14))
+
+```
+
+
+```{r majority_votes, echo=FALSE, eval=FALSE, include=FALSE}
+
+# Shorter than classified as dropped 
+
+majority_votes <- raw %>%
+  left_join(classified, by = c('respondent_id' = 'respondent_id')) %>%
+  left_join(codes, by = c('code_id' = 'code_id')) %>%
+  collect %>%
+  dplyr::mutate(
+    code = factor(as.character(code))
+  ) %>%
+  group_by(respondent_id, code) %>%
+  mutate(n_code = n()) %>%
+  group_by(respondent_id) %>%
+  mutate(
+    date = ceiling_date(start_date.x, '1 month'),
+    n = n(),
+    max = max(n_code),
+    ratio = n_code / n,
+    vote = ifelse(ratio > 0.5, code, NA)
+    ) %>%
+  select(
+    respondent_id, 
+    date, 
+    code_introduced = start_date.y, 
+    code, 
+    n_code, 
+    n, 
+    ratio,
+    vote
+    )
+  
+```
+
+```{r coding_breakdown_ym, fig.height=24, fig.width=8, eval=FALSE, include=FALSE}
+
+majority_votes %>%
+  group_by(date, vote) %>%
+  mutate(
+    month_n = n(),
+    code_introduced = factor(code_introduced)
+    ) %>%
+  ggplot +
+  aes(
+    y = n,
+    x = reorder(vote, n),
+    width = 0.9
+  ) +
+  geom_bar(
+    stat = 'identity'
+  ) +
+  theme_gov(
+    base_colour = '#000000',
+    base_size = 14
+  ) +
+  xlab('Codes') +
+  ylab('Number coded') + 
+  coord_flip() +
+  theme(
+    axis.line.y = element_line(colour = '#FFFFFF'),
+    plot.background = element_rect(fill = '#FFFFFF'),
+    plot.title = element_text(size = 20)
+    ) +
+  facet_wrap(~date, ncol = 2, scales = 'free_x') +
+  theme(legend.position = 'top') +
+  theme(text=element_text(family = "Helvetica", size = 14))
+
+```
+
+# Building a new training set
+
+A new training set would ideally be built only from surveys that have been classified multiple times by humans classifiers. Unfortunately at present, there are simply too few cases that fit this criterion, so for now, it makes sense to use:
+
+* The original training set comprising data from 03-05/2016[^1].
+* All the data that have been classified by a machine, and verified by at least one human[^2].
+* All the cases where at least three human classifiers have classified a survey, with a ratio of at least 0.5[^3].
+
+*Note that in all cases if no free text is submitted by the survey respondent, then the survey is dropped.*
+
+[^1]: Note that in future iterations it would preferable not to rely on the original training set, and instead rely on data that have been classified by human classifiers several times. There is not yet sufficient data to do this.
+[^2]: We would not want to rely on cases that have only been seen by the machine in order to populate a training set, but when those surveys have also been classified by a human, this seems like a reasonable proposition.
+[^3]: The ratio is the maximum number of times a code has been applied to a survey, divided by the total number of times that survey has been classified. So for instance a ratio of >0.5 would require 2/3, or 3/4, or 3/5, 4/6, 4/7, 5/8, 5/9, etc. It also implies that we trust human classifiers slightly less than we trust the machine, this is fair because the machine is very good at recognising `none` codes, but not others.
+
+### The original training set
+
+These surveys are selected by the following filters:
+
+* Collected between 2016-01-01 and 2016-06-01
+* Where the ratio[^3] is greater than 0.5. Note that because there is no stipulation on $n$, this will capture cases when there is only one classification, and cases where there is a majority vote: if there is a stalemate, the survey will get dropped.
+* Have at least some free text comment (otherwise deterministically classified as `none`)
+
+```{r}
+original_training_set <- classified %>% 
+  left_join(raw) %>%
+  left_join(codes, by = c('code_id' = 'code_id')) %>%
+  collect %>%
+  dplyr::filter(
+    start_date.x < '2016-06-01',
+    start_date.x > '2016-01-01',
+    !(
+      is.na(comment_why_you_came) & is.na(comment_other_found_what) &
+        is.na(comment_other_where_for_help) & is.na(comment_other_else_help) & 
+        is.na(comment_where_for_help) & is.na(comment_further_comments)
+      )
+    ) %>%
+  group_by(respondent_id, code) %>%
+  mutate(n_code = n()) %>%
+  group_by(respondent_id) %>%
+  mutate(
+    date = ceiling_date(start_date.x, '1 month'),
+    n = n(),
+    max = max(n_code),
+    ratio = n_code / n,
+    vote = ifelse(ratio > 0.5, code, NA)
+  ) %>%
+  dplyr::filter(
+    !is.na(vote)
+    ) %>%
+  distinct(vote)
+  
+```
+
+How many rows does this leave us with?
+
+```{r}
+original_training_set %>% 
+  nrow
+```
+
+Check that there is one line per respondent_id, i.e. that we don't have more than one classification per respondent_id.
+
+```{r}
+
+nrow(original_training_set)==length(unique(original_training_set$respondent_id))
+
+```
+
+What do the counts of classes look like?
+
+```{r,echo=FALSE}
+original_training_set %$%
+  vote %>%
+  table
+```
+
+And in graphical form?
+
+```{r}
+
+original_training_set %>%
+  group_by(vote) %>%
+  tally %>%
+  ggplot +
+  aes(
+    x = reorder(vote, n),
+    y = n
+    ) +
+  geom_bar(
+    stat='identity',
+    fill = gov_cols['green']) +
+  coord_flip() +
+  theme_gov() +
+  xlab('Class') +
+  theme(text=element_text(family="Helvetica", size=14))
+
+```
+
+### Automated decisions subsequently validated by a human
+
+```{r}
+
+# Get all the surveys which have been classified by the machine,
+# and have been corroborated by a human.
+
+automated_and_verified = tbl(intent, sql(
+'select * from priority where coders @> ARRAY[2] and total > 2'
+))
+
+```
+
+There are `r nrow(collect(automated_and_verified))` times that an automated decision has been verified subsequently by a human classifier.
+However on some occasions more than one human classified has classified that survey, and they do not always agree. In this case we need to set a threshold ratio beneath which we do no accept a survey.
+
+The table below shows all the times that a human has verified a machine decision. A ratio of 0.75 seems like a reasonable cut off point: there are relatively few cases beneath this (1.0 might also be the reasonable cut off).
+
+```{r}
+automated_and_verified %>%
+  collect %>%
+  filter(ratio > 0.5) %>%
+  mutate(ratio = round(ratio, 2)) %>%
+  group_by(total, ratio) %>%
+  
+  summarise(
+    n = n()
+    ) %>%
+  arrange(desc(ratio), desc(total)) %>%
+  kable
+
+```
+
+```{r}
+
+automated_and_verified1 <- automated_and_verified %>%
+  filter(ratio > 0.75) %>%
+  left_join(classified, by = c('respondent_id' = 'respondent_id')) %>%
+  left_join(codes) %>%
+  left_join(raw, by = c('respondent_id' = 'respondent_id')) %>%
+  collect %>%
+  dplyr::filter(
+        !(
+      is.na(comment_why_you_came) & is.na(comment_other_found_what) &
+        is.na(comment_other_where_for_help) & is.na(comment_other_else_help) & 
+        is.na(comment_where_for_help) & is.na(comment_further_comments)
+      )
+    ) %>%
+  group_by(respondent_id, code) %>%
+  mutate(n_code = n()) %>%
+  group_by(respondent_id) %>%
+  mutate(
+    n = n(),
+    max = max(n_code),
+    ratio = n_code / n,
+    vote = ifelse(ratio > 0.5, code, NA)
+  ) %>%
+  distinct(vote) %>%
+  dplyr::filter(
+    !is.na(vote)
+    )
+
+```
+
+With a 0.75 cut-off point, how many surveys are we left with (note that we drop all cases where a `none` was classified because there was no free text input - most of them!)?
+
+```{r}
+automated_and_verified1 %>% nrow
+```
+
+What classes do these come from? They should be mostly `none`.
+```{r}
+
+automated_and_verified1 %$%
+  vote %>%
+  table
+
+```
+
+Perfect...
+
+## All cases where more than 3 people saw it and agreed
+
+```{r}
+
+majority <- classified %>%
+  left_join(raw) %>%
+  left_join(codes, by = c('code_id' = 'code_id')) %>%
+  collect %>%
+  dplyr::filter(
+        !(
+      is.na(comment_why_you_came) & is.na(comment_other_found_what) &
+        is.na(comment_other_where_for_help) & is.na(comment_other_else_help) & 
+        is.na(comment_where_for_help) & is.na(comment_further_comments)
+      )
+    ) %>%
+  group_by(respondent_id, code) %>%
+  mutate(n_code = n()) %>%
+  group_by(respondent_id) %>%
+  mutate(
+    date = ceiling_date(start_date.x, '1 month'),
+    n = n(),
+    max = max(n_code),
+    ratio = n_code / n,
+    vote = ifelse(ratio > 0.5, code, NA)
+  ) %>%
+  dplyr::filter(
+    !is.na(vote),
+    n > 2
+    ) %>%
+  distinct(vote)
+  
+```
+
+How many times has this occured?
+
+```{r}
+majority %>% nrow
+```
+
+And what is the breakdown of classes?
+
+```{r, echo=FALSE}
+majority %$%
+  vote %>%
+  table
+```
+
+Graphical representation of this:
+
+```{r}
+
+majority %>%
+  group_by(vote) %>%
+  tally %>%
+  ggplot +
+  aes(
+    x = reorder(vote, n),
+    y = n
+    ) +
+  geom_bar(
+    stat = 'identity',
+    fill = gov_cols['green']) +
+  coord_flip() +
+  theme_gov() +
+  xlab('Class') +
+  theme(text=element_text(family="Helvetica", size=14))
+
+```
+
+## Combining the three sets
+
+```{r}
+
+combined <- bind_rows(
+  original_training_set,
+  automated_and_verified1,
+  majority,
+  .id = 'df'
+)
+
+```
+Note that some surveys will fall into more than one of the groups we have specified, so remove duplicates here, leaving:
+
+```{r}
+
+# Grouped by repsondent_id
+
+combined_dedup <- combined %>%
+  ungroup %>%
+  distinct(vote, respondent_id)
+
+combined_dedup %>%
+  nrow
+```
+
+
+This number should be the same as the number of unique respondent_ids:
+
+```{r}
+length(unique(combined$respondent_id)) == nrow(combined_dedup) 
+```
+
+```{r}
+file_name <- 'updated_training_set.csv'
+
+combined_dedup %>%
+  mutate(respondent_id = as.character(respondent_id)) %>%
+  ungroup %>%
+  transmute(respondent_id, vote, date_added = '2017-06-24') %>%
+  write_csv(file_name)
+```
+
+This updated training set is saved out to `r file_name`, and added to the postgres database table: training.
+
+```{r}
+sessionInfo()
+```
