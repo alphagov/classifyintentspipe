@@ -116,7 +116,7 @@ class TestPipelineFunctions(object):
         df = test_pipeline.fit_transform(self.df)
 
         assert isinstance(df, np.ndarray)
-        assert df.shape[1] == 8
+        assert df.shape[1] == 15
         assert df.dtype == np.float64
 
     def test_CommentFeatureAdder(self):
@@ -124,7 +124,7 @@ class TestPipelineFunctions(object):
         Test that CommentFeatureAdder returns the requisite columns
         """
         
-        features = ['comment_further_comments']
+        features = ['comment_further_comments','comment_what_work']
 
         test_pipeline = Pipeline([
             ('selector', DataFrameSelector(features)),
@@ -134,7 +134,7 @@ class TestPipelineFunctions(object):
         df = test_pipeline.fit_transform(self.df)
 
         assert isinstance(df, np.ndarray)
-        assert df.shape[1] == 3
+        assert df.shape[1] == 4
 
     def test_capsratio(self):
         """

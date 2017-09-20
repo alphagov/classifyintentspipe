@@ -4,10 +4,12 @@
 import os
 import pickle
 import scrubadub
-import sqlalchemy as sa
 import pickle
 import logging
 import logging.config
+import numpy as np
+import sqlalchemy as sa
+import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import FeatureUnion
 from sklearn.pipeline import Pipeline
@@ -28,15 +30,35 @@ logger.info('Extracting data from %s', ENGINE)
 
 df = get_df(engine=ENGINE)
 
+nrow = df.shape[0]
+
+# Get the training set
+
+data_indexes = pd.read_csv('../data/2017-06-24_training_set_indexes.csv')
+
+df = df[df['respondent_id'].isin(data_indexes['respondent_id'])]
+
+df = df.dropna(subset=['vote'])
+#df = df.loc[df.vote != 0, :]
+
+logger.debug('Dropped %s of %s rows where there is no target (vote) or no comment (none)', nrow - df.shape[0], nrow)
+logger.debug('Dataset shape is now %s', df.shape)
+
+
 logger.info('Database extraction complete')
 
 #save_pickle(df, 'OFFICIAL_database_dump_dirty.pkl', 'Raw data extarcted from db')
 
-df = clean_PII(df)
+comment_cols = [i for i in df.columns if 'comment' in i]
+
+df = clean_PII(df, comment_cols)
+
+#df["comment_combined"] = df["comment_why_you_came"] + " " + df["comment_where_for_help"] + \
+         #" + df["comment_further_comments"]
 
 # Save PII cleaned data to pickle
 
-save_pickle(df, 'OFFICIAL_db_dump_PII_removed.pkl', 'PII cleaned data')
+save_pickle(df, '../data/OFFICIAL_db_dump_PII_removed.pkl', 'PII cleaned data')
 
 # df column names have already been sanitized in a previous step (and in
 # future will be loaded directly from the database, so it is not necessary
@@ -46,7 +68,7 @@ save_pickle(df, 'OFFICIAL_db_dump_PII_removed.pkl', 'PII cleaned data')
 
 X_id = df['respondent_id']
 
-# For now drop url until better features can be added
+# For now drop url until better url features can be added
 
 drop_columns = ['respondent_id', 'full_url', 'vote']
 logger.debug('Dropping columns %s', drop_columns)
@@ -58,16 +80,20 @@ X = df.drop(drop_columns, axis=1)
 logger.debug('Encoding vote with one-hotencoding')
 
 encoder = LabelBinarizer()
-#y = encoder.fit_transform(df['vote'])
+y_all = encoder.fit_transform(df['vote'])
 
 # This creates a matrix of m * k where there are k classes.
 # We then need to select a column to be the target, in this case
 
-#logger.debug('Encoding one hot encoding on target variable')
+y_class = [i for i, x in enumerate(np.sum(y_all, axis=0)) if x == len(df.vote[df.vote==12])]
 
-#y = df_one_hot[:,4]
+# Check that y_class codes for the ok (12) variable
 
-#print('...done')
+logger.debug('Selecting class %s as target variable', y_class)
+
+targets = y_all[:,y_class]
+
+assert sum(targets) == len(df.vote[df.vote==12])
 
 # Scale numeric features with the standard
 
@@ -95,13 +121,14 @@ date_pipeline = Pipeline([
 #    ('minmax_scaler', MinMaxScaler())
 #    ])
 
-comment_features = [i for i in X.columns if 'comment' in i]
+
+comment_features = ['comment_why_you_came', 'comment_where_for_help', 'comment_further_comments']
 
 logger.debug('Generating comment features on %s', comment_features)
 
 comment_pipeline = Pipeline([
     ('selector', DataFrameSelector(comment_features)),
-    ('str_length', CommentFeatureAdder()),
+    ('comment_features', CommentFeatureAdder()),
     ('minmax_scaler', MinMaxScaler())
     ])
 
@@ -112,13 +139,24 @@ full_pipeline = FeatureUnion(transformer_list=[
 
 logger.debug('Running .fit_transform on full_pipeline')
 
-transformed_dataset = full_pipeline.fit_transform(X)
+try:
+    transformed_dataset = full_pipeline.fit_transform(X)
+except:
+    logger.exception('Unhandled exception while running full_pipeline.git_transform()')
+    raise
 
 logger.info('Transformed dataset shape is %s ', transformed_dataset.shape)
+
+expected_number_of_date_features = (len(date_features) * 7) + 1
+expected_number_of_comment_features = (len(comment_features) * 2)
+total_features = expected_number_of_date_features + expected_number_of_comment_features
+
+assert transformed_dataset.shape == (X.shape[0], (total_features)), \
+        'Transformed dataset is the wrong shape'
 
 #foo = full_pipeline.fit_transform(X)
 
 # Save data out to pickle object
 
-save_pickle(transformed_dataset, 'transformed_data.pkl', 'Transformed data')
-
+save_pickle(transformed_dataset, '../data/transformed_data.pkl', 'Transformed data')
+save_pickle(targets, '../data/targets.pkl', 'Targets')
