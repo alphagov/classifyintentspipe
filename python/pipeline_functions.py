@@ -142,11 +142,19 @@ class DateFeatureAdder(BaseEstimator, TransformerMixin):
     * day
     * week
     * month
-    * year
+    * hour
     * Time taken to complete survey
+
+    Needs to take start_data and end_date in the input list, but will
+    drop end_date, using it only to generate time_delta.
+
+    If none specified, then the delta will not be added.
     '''
-    def __init__(self):
-        pass
+    def __init__(self, start_date=None, end_date=None):
+        self.end_date = end_date
+        self.start_date = start_date
+        logger.debug('self.start_date = %s', self.start_date)   
+        logger.debug('self.end_date = %s', self.end_date)
     def fit(self, X, y=None):
         return self
     def transform(self, X):
@@ -154,47 +162,42 @@ class DateFeatureAdder(BaseEstimator, TransformerMixin):
         logger.debug('Running DateFeatureAdder.transform()')
         
         out = np.empty([X.shape[0], 0])
+        
         X.is_copy = False # Squash slice warning from pandas
-        X_cols = list(X)
-        for i in X_cols:
-            X[i] = pd.to_datetime(X[i])
+        X = X[['start_date','end_date']].apply(pd.to_datetime)
+        
+        out = np.c_[out, (X[self.start_date].astype(np.int64)/1e6)] # Unix time
+        logger.debug('Converted %s to unixtime', self.start_date)
+            
+        out = np.c_[out, X[self.start_date].dt.weekday]
+        logger.debug('Converted %s to weekday', self.start_date)
+            
+        out = np.c_[out, X[self.start_date].dt.dayofyear]
+        logger.debug('Converted %s to dayofyear', self.start_date)
+            
+        out = np.c_[out, X[self.start_date].dt.day]
+        logger.debug('Converted %s to day', self.start_date)
+            
+        out = np.c_[out, X[self.start_date].dt.week]
+        logger.debug('Converted %s to week', self.start_date)
+            
+        out = np.c_[out, X[self.start_date].dt.month]
+        logger.debug('Converted %s to month', self.start_date)
+            
+        out = np.c_[out, X[self.start_date].dt.hour]
+        logger.debug('Converted %s to hour', self.start_date)
 
-            # Generate various features based on date and recast
-            # the actual date into a unix time object.
+        if self.end_date:
 
-            out = np.c_[out, (X[i].astype(np.int64)/1e6)] # Unix time
-            logger.debug('Converted %s to unixtime', i)
-            
-            out = np.c_[out, X[i].dt.weekday]
-            logger.debug('Converted %s to weekday', i)
-            
-            out = np.c_[out, X[i].dt.dayofyear]
-            logger.debug('Converted %s to dayofyear', i)
-            
-            out = np.c_[out, X[i].dt.day]
-            logger.debug('Converted %s to day', i)
-            
-            out = np.c_[out, X[i].dt.week]
-            logger.debug('Converted %s to week', i)
-            
-            out = np.c_[out, X[i].dt.month]
-            logger.debug('Converted %s to month', i)
-            
-            out = np.c_[out, X[i].dt.year]
-            logger.debug('Converted %s to year', i)
-
-            # This is a bit inelegant, because it assumes that there are
-            # only two date features, if the number of date features
-            # changes, this will need to be changed.
-
-        time1 = pd.to_datetime(X[X_cols[0]])
-        for j in X_cols[1:]:
-            time2 = pd.to_datetime(X[j])
+            time2 = pd.to_datetime(X[self.end_date])
+            logger.debug('time2 is %s', type(time2))
+            time1 = pd.to_datetime(X[self.start_date])
+            logger.debug('time1 is %s', type(time1))
             delta = np.absolute(time2 - time1)
             delta = delta.astype('int')
             delta = delta / 10e+8
             out = np.c_[out, delta]
-        logger.debug('Calculated time delta on %s', i)
+        logger.debug('Calculated time delta by subtracting %s from %s', self.start_date, self.end_date)
 
         # Replace any nans with zero.
         # TODO: investigate what is causing the creation of these nans.

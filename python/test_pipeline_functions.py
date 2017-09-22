@@ -110,13 +110,13 @@ class TestPipelineFunctions(object):
 
         test_pipeline = Pipeline([
             ('selector', DataFrameSelector(features)),
-            ('date_features', DateFeatureAdder())
+            ('date_features', DateFeatureAdder('start_date', 'end_date'))
             ])
 
         df = test_pipeline.fit_transform(self.df)
 
         assert isinstance(df, np.ndarray)
-        assert df.shape[1] == 15
+        assert df.shape[1] == 8
         assert df.dtype == np.float64
 
     def test_CommentFeatureAdder(self):

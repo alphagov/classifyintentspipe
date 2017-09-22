@@ -107,7 +107,7 @@ logger.debug('Generating date features on %s', date_features)
 
 date_pipeline = Pipeline([
     ('selector', DataFrameSelector(date_features)),
-    ('date_features', DateFeatureAdder()),
+    ('date_features', DateFeatureAdder('start_date','end_date')),
     ('minmax_scaler', MinMaxScaler())
     ])
 
@@ -147,8 +147,11 @@ except:
 
 logger.info('Transformed dataset shape is %s ', transformed_dataset.shape)
 
-expected_number_of_date_features = (len(date_features) * 7) + 1
+expected_number_of_date_features = 7 + 1
+logger.debug('Expecting %s date features', expected_number_of_date_features)
+
 expected_number_of_comment_features = (len(comment_features) * 2)
+logger.debug('Expecting %s comment features', expected_number_of_comment_features)
 total_features = expected_number_of_date_features + expected_number_of_comment_features
 
 assert transformed_dataset.shape == (X.shape[0], (total_features)), \
