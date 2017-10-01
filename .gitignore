@@ -28,3 +28,6 @@ packrat/lib*/
 *saver/
 *tf_logs
 python/notebooks/logs
+20_newsgroup
+news20.tar.gz
+glove.6B
