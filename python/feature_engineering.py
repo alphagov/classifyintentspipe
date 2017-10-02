@@ -120,7 +120,9 @@ date_pipeline = Pipeline([
 #    ])
 
 
-comment_features = ['comment_why_you_came', 'comment_where_for_help', 'comment_further_comments', 'comment_combined']
+#comment_features = ['comment_why_you_came', 'comment_where_for_help', 'comment_further_comments', 'comment_combined']
+
+comment_features = ['comment_combined']
 
 logger.debug('Generating comment features on %s', comment_features)
 

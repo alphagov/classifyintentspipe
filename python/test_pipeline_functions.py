@@ -162,6 +162,10 @@ class TestPipelineFunctions(object):
 
         assert set(strlen(test_strings)) == set([0, 1, 2, 3, 4])
         
+        #test_strings1 = pd.Series([np.nan, None])
+        #case = TestCase()
+        #case.assertCountEqual(strlen(test_strings1), [0, 0])
+    
     def test_strlen_binned(self):
         """
         Test that strlen_binned() works as expected

@@ -268,7 +268,11 @@ class CommentFeatureAdder(BaseEstimator, TransformerMixin):
 
 
 def strlen(x):
-
+    '''
+    Note that this will fail if passed np.nan rather than None
+    for missing values.
+    '''
+    x[x.isnull()] = None
     out = [np.round(len(i), 4) if i is not None else 0 for i in x]
     return out
 
