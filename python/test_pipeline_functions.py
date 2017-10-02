@@ -9,12 +9,13 @@ import numpy as np
 import sqlalchemy as sa
 from pipeline_functions import DataFrameConverter, DataFrameSelector, \
         CommentFeatureAdder, DateFeatureAdder, save_pickle, \
-        capsratio, exclratio, strlen
+        capsratio, exclratio, strlen, strlen_binned
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import FeatureUnion
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import LabelBinarizer
+from unittest import TestCase
 #from psycopg2 import OperationalError, ProgrammingError
 
 class TestPipelineFunctions(object):
@@ -134,7 +135,7 @@ class TestPipelineFunctions(object):
         df = test_pipeline.fit_transform(self.df)
 
         assert isinstance(df, np.ndarray)
-        assert df.shape[1] == 4
+        assert df.shape[1] == 8
 
     def test_capsratio(self):
         """
@@ -160,3 +161,15 @@ class TestPipelineFunctions(object):
         test_strings = pd.Series([None, 'a', 'ab', 'abc', 'abcd'])
 
         assert set(strlen(test_strings)) == set([0, 1, 2, 3, 4])
+        
+    def test_strlen_binned(self):
+        """
+        Test that strlen_binned() works as expected
+        """
+
+        test_strings = pd.Series([None, 'a', 'ab', 'abc', 'abcd'])
+        string_length = strlen(test_strings)
+        string_length_binned = strlen_binned(string_length, ratio=2,
+                cutoff=1.5)
+        case = TestCase()
+        case.assertCountEqual(string_length_binned, [0., 1., 1., 2., 2.])
