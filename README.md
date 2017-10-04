@@ -23,6 +23,26 @@ The only out of the ordinary requirement is the [classifyintents](https://github
 
 See the instruction [here](https://github.com/kynan/nbstripout) for how to install. You should install it as a git filter using `npstripout --install`. 
 
+### xgboost installation
+
+You face problems installing the python `xgboost` package. The following workaround will allow it to be install in a specified virtual environment:
+
+```
+git clone git@github.com:dmlc/xgboost.git
+
+cd xgboost
+
+./build.sh
+
+# Start appropriate virtualenv (if using virtualenv wrapper)
+
+workon my_env
+
+cd python-package
+
+pip install -e .
+```
+
 ## Instructions
 
 ### Selecting training examples
@@ -184,5 +204,6 @@ python pii_test_cases.py <input_data/raw.csv> <output_data/classified/classified
 
 This will take all the cases in which PII was identified, and combine these with the uncleansed examples to facilitate comparison.
 From this comparison, new test cases can be created to improve the performance of the PII removal.
+
 
 
