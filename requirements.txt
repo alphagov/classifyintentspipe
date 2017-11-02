@@ -1,4 +1,6 @@
 appdirs==1.4.3
+git+git://github.com/dmlc/xgboost.git
+git+git://github.com/viisar/brew.git
 git+git://github.com/ukgovdatascience/classifyintents.git
 git+git://github.com/ukgovdatascience/scrubadub.git
 deap==1.0.1
@@ -18,4 +20,4 @@ SQLAlchemy==1.1.11
 tensorflow==1.3.0
 jupyter==1.0.0
 matplotlib==2.0.2
-xgboost==0.6a2
+#xgboost==0.6a2
