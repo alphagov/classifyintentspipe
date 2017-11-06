@@ -60,7 +60,7 @@ df = clean_PII(df, comment_cols)
 
 save_pickle(df, '../data/OFFICIAL_db_dump_PII_removed.pkl', 'PII cleaned data')
 
-df['comment_combined'] = df['comment_why_you_came'] + ' ' + df['comment_where_for_help'] + ' ' + df['comment_further_comments']
+#df['comment_combined'] = df['comment_why_you_came'] + ' ' + df['comment_where_for_help'] + ' ' + df['comment_further_comments']
 
 # Save index in
 

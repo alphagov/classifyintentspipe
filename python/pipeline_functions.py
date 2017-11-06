@@ -57,7 +57,9 @@ def get_df(engine):
             "select raw.respondent_id, start_date, end_date, full_url, "
             "cat_work_or_personal, comment_what_work, comment_why_you_came, "
             "cat_found_looking_for, cat_satisfaction, cat_anywhere_else_help, "
-            "comment_where_for_help, comment_further_comments, vote "
+            "comment_where_for_help, comment_further_comments, concat_ws(', ', "
+            "comment_why_you_came, comment_where_for_help, comment_further_comments)" 
+            "as comment_combined, vote "
             "from raw left join (select respondent_id,"
             "vote from priority where coders is not null) p on "
             "(raw.respondent_id = p.respondent_id) "
@@ -236,7 +238,7 @@ class CommentFeatureAdder(BaseEstimator, TransformerMixin):
         # the np.ndarray out.
 
         for i in X_cols:
-            
+
             # Operates on the individual series
 
             X[i] = X[i].str.strip()
