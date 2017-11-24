@@ -17,9 +17,8 @@ def main():
 
     # Get database credentials from environment variables.
 
-    ENGINE_STRING = "postgres://{}:{}@{}/{}".format(os.environ['PGUSER'], \
-        os.environ['PGPASSWORD'], os.environ['PGHOST'], os.environ['PGDB'])
-    ENGINE = sa.create_engine(ENGINE_STRING)
+    DATABASE_URL = os.environ['DATABASE_URL']
+    ENGINE = sa.create_engine(DATABASE_URL)
 
 
     # Extract raw data and join with majority vote
