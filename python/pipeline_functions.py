@@ -280,7 +280,7 @@ def strlen(x):
 
 def capsratio(x):
 
-    if isinstance(x, str):
+    if isinstance(x, str) and (len(x) > 0):
         out = sum([i.isupper() for i in x]) / len(x)
         out = np.round(out, 4)
     else:
@@ -289,7 +289,7 @@ def capsratio(x):
 
 def exclratio(x):
 
-    if isinstance(x, str):
+    if isinstance(x, str) and (len(x) > 0):
         out = sum([j == '!' for j in x]) / len(x)
         out = np.round(out, 4)
     else:

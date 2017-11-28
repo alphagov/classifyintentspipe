@@ -142,6 +142,7 @@ class TestPipelineFunctions(object):
         Test that capsratio() works as expected
         """
         
+        assert capsratio('') == 0
         assert capsratio('The') == 0.3333
         assert capsratio(None) == 0
 
@@ -149,7 +150,8 @@ class TestPipelineFunctions(object):
         """
         Test that exclratio() works as expected
         """
-        
+
+        assert exclratio('') == 0
         assert exclratio('Ag!') == 0.3333
         assert exclratio(None) == 0
 
@@ -161,7 +163,8 @@ class TestPipelineFunctions(object):
         test_strings = pd.Series([None, 'a', 'ab', 'abc', 'abcd'])
 
         assert set(strlen(test_strings)) == set([0, 1, 2, 3, 4])
-        
+        assert strlen('') == 0
+
         #test_strings1 = pd.Series([np.nan, None])
         #case = TestCase()
         #case.assertCountEqual(strlen(test_strings1), [0, 0])

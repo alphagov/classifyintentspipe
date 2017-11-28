@@ -33,6 +33,7 @@ df = get_df(engine=ENGINE)
 nrow = df.shape[0]
 
 # Get the training set
+# These are output by ../R/notebooks/create_training_set.Rmd
 
 data_indexes = pd.read_csv('../data/2017-06-24_training_set_indexes.csv')
 
