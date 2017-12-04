@@ -130,13 +130,20 @@ def main():
 
     urls = intent.data_full.loc[:, ['respondent_id', 'start_date',
         'end_date', 'full_url', 'page', 'section', 'org']]
+    urls['respondent_id'] = urls['respondent_id'].astype('int')
+    print(intent.raw.dtypes)
+    print(urls.dtypes)
 
     output = intent.raw.merge(
         right=urls,
         how='left',
         left_on='UserID',
-        right_on='respondent_id'
-        )
+        right_on='respondent_id',
+        indicator=True
+     )
+
+    print('Merge success:')
+    print(output['_merge'].value_counts())
 
     # Remove the rather unhelpful US system dates, retaining only the clean ones.
 
