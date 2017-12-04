@@ -19,3 +19,5 @@ pip-selfcheck.json
 share
 .env
 .Rproj.user
+.envrc
+.cache

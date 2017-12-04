@@ -10,6 +10,8 @@ if (length(args)!=2) {
   stop("Two arguments must be provided: an input and an output dataset", call.=FALSE)
 }
 
+print(paste('Loading input data', args[1]))
+
 raw <- read.csv(
   args[1], 
   stringsAsFactors = FALSE
@@ -19,7 +21,7 @@ colnames(raw) = make.names(colnames(raw))
 
 mapping <- c(
   "clientID" = "client_id",
-  "UserID" = "respondent_ID",
+  "UserID" = "respondent_id",
   "UserNo" = "user_no_drop",
   "Tracking.Link" = "collector_id",
   "Started" = "start_date",
@@ -69,6 +71,8 @@ fix_NA <- function(x) {
 
 fix_cat <- function(x) {
  
+    # If not Yes, No or Not sure, then make NA
+
   x[!x %in% c("No","Yes","Not sure / Not yet")] <- NA
   
   return(x)
@@ -77,8 +81,9 @@ fix_cat <- function(x) {
 
 fill_other <- function(x) {
 
+    # If not Yes, No or Not sure, then make NA
+
   x[x %in% c("No","Yes","Not sure / Not yet","-")] <- NA
-  
   
   return(x)
   
@@ -94,7 +99,7 @@ fix_missing_urls <- function(x) {
 clean <- raw_clean_names %>% 
   transmute(
   # Add NA columns
-  respondent_ID,
+  respondent_id,
   collector_id,
   start_date = dmy_hms(start_date),
   end_date = dmy_hms(end_date),
@@ -122,14 +127,14 @@ clean <- raw_clean_names %>%
 
 clean_organised <- clean %>%
   select(
-  respondent_ID, collector_id, start_date, end_date,
+  respondent_id, collector_id, start_date, end_date,
   full_url, cat_work_or_personal, comment_what_work, 
   comment_why_you_came, cat_found_looking_for, comment_other_found_what, 
   cat_satisfaction, comment_other_where_for_help, cat_anywhere_else_help, 
   comment_other_else_help, comment_where_for_help, comment_further_comments 
   )
 
-
+print(paste('Writing data to', args[2]))
 clean_organised %>% 
   write_csv(
     args[2], 
