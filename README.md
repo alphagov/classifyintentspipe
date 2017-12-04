@@ -10,23 +10,12 @@ The project is described in the [blog post](https://gdsdata.blog.gov.uk/2016/12/
 
 Nominally this application requires the following:
 
-* Python 3.6.1
-* gnu make (required for using makefile)
+* Python 3.6.2
 
 I would recommend setting up an environment using anaconda or venv before proceeding. `pip install -r requirements.txt` can then be used to install the required packages.
 The only out of the ordinary requirement is the [classifyintents](https://github.com/ukgovdatascience/classifyintents) package, developed to handle the cleaning of the data; this is installed with the above step.
 
 ## Instructions
-
-**When working with smartsurvey data the data must first be reformatted by running `Rscript reformat.R input.csv output.csv`.**
-
-To execute, run `make` from the root directory.
-
-To upgrade to the latest version of classifyintents run:
-
-```make init``` from the root.
-
-More instructions are provided in the [makefile](makefile).
 
 ## What's actually here:
 
