@@ -1,5 +1,9 @@
 #!/usr/bin/env Rscript
 
+if("dplyr" %in% rownames(installed.packages()) == FALSE) {install.packages("dplyr")}
+if("readr" %in% rownames(installed.packages()) == FALSE) {install.packages("readr")}
+if("lubridate" %in% rownames(installed.packages()) == FALSE) {install.packages("lubridate")}
+
 library(dplyr)
 library(readr)
 library(lubridate)
