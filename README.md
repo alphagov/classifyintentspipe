@@ -1,4 +1,4 @@
-[![GitHub tag](https://img.shields.io/github/tag/ukgovdatascience/classifyintentspipe.svg)](https://github.com/ukgovdatascience/classifyintentspipe/releases)
+[![GitHub tag](https://img.shields.io/github/tag/alphagov/classifyintentspipe.svg)](https://github.com/alphagov/classifyintentspipe/releases)
 
 # Using machine learning to classify user comments on gov.uk
 
@@ -15,7 +15,7 @@ Nominally this application requires the following:
 * [nbstripout](https://github.com/kynan/nbstripout)
 
 I would recommend setting up an environment using anaconda or venv before proceeding. `pip install -r requirements.txt` can then be used to install the required packages.
-The only out of the ordinary requirement is the [classifyintents](https://github.com/ukgovdatascience/classifyintents) package, developed to handle the cleaning of the data; this is installed with the above step.
+The only out of the ordinary requirement is the [classifyintents](https://github.com/alphagov/classifyintents) package, developed to handle the cleaning of the data; this is installed with the above step.
 
 ### nbstripout installation
 
@@ -160,8 +160,8 @@ pd.merge(df, foo.urldf)
 #### scrubadud
 
 PII is removed from the free text of the surveys by using the [scrubadub](https://github.com/datascopeanalytics/scrubadub) package.
-At present a [fork](https://github.com/ukgovdatascience/scrubadub) of this package is used, though in future it would be preferable for the changes made in the fork to be pushed back to the original repo.
-The fork can be installed using `pip install git+git://github.com/ukgovdatascience/scrubadub.git`
+At present a [fork](https://github.com/alphagov/scrubadub) of this package is used, though in future it would be preferable for the changes made in the fork to be pushed back to the original repo.
+The fork can be installed using `pip install git+git://github.com/alphagov/scrubadub.git`
 
 PII can be removed with the following:
 
