@@ -33,6 +33,7 @@ df = get_df(engine=ENGINE)
 nrow = df.shape[0]
 
 # Get the training set
+# These are output by ../R/notebooks/create_training_set.Rmd
 
 data_indexes = pd.read_csv('../data/2017-06-24_training_set_indexes.csv')
 
@@ -60,9 +61,7 @@ df = clean_PII(df, comment_cols)
 
 save_pickle(df, '../data/OFFICIAL_db_dump_PII_removed.pkl', 'PII cleaned data')
 
-# df column names have already been sanitized in a previous step (and in
-# future will be loaded directly from the database, so it is not necessary
-# to sanitize them here)
+#df['comment_combined'] = df['comment_why_you_came'] + ' ' + df['comment_where_for_help'] + ' ' + df['comment_further_comments']
 
 # Save index in
 
@@ -122,7 +121,9 @@ date_pipeline = Pipeline([
 #    ])
 
 
-comment_features = ['comment_why_you_came', 'comment_where_for_help', 'comment_further_comments']
+#comment_features = ['comment_why_you_came', 'comment_where_for_help', 'comment_further_comments', 'comment_combined']
+
+comment_features = ['comment_combined']
 
 logger.debug('Generating comment features on %s', comment_features)
 
@@ -150,7 +151,7 @@ logger.info('Transformed dataset shape is %s ', transformed_dataset.shape)
 expected_number_of_date_features = 7 + 1
 logger.debug('Expecting %s date features', expected_number_of_date_features)
 
-expected_number_of_comment_features = (len(comment_features) * 2)
+expected_number_of_comment_features = (len(comment_features) * 4)
 logger.debug('Expecting %s comment features', expected_number_of_comment_features)
 total_features = expected_number_of_date_features + expected_number_of_comment_features
 

@@ -57,7 +57,9 @@ def get_df(engine):
             "select raw.respondent_id, start_date, end_date, full_url, "
             "cat_work_or_personal, comment_what_work, comment_why_you_came, "
             "cat_found_looking_for, cat_satisfaction, cat_anywhere_else_help, "
-            "comment_where_for_help, comment_further_comments, vote "
+            "comment_where_for_help, comment_further_comments, concat_ws(', ', "
+            "comment_why_you_came, comment_where_for_help, comment_further_comments)" 
+            "as comment_combined, vote "
             "from raw left join (select respondent_id,"
             "vote from priority where coders is not null) p on "
             "(raw.respondent_id = p.respondent_id) "
@@ -216,9 +218,7 @@ class CommentFeatureAdder(BaseEstimator, TransformerMixin):
 
     Adds the following features:
     * Character count
-    TODO:
-    - Count of capital letters as a ratio of character count
-    - Count of exclamations as a ratio of character count
+    * Ratio of capital to lower case letters
     '''
 
     def __init__(self):
@@ -238,40 +238,49 @@ class CommentFeatureAdder(BaseEstimator, TransformerMixin):
         # the np.ndarray out.
 
         for i in X_cols:
-            
+
             # Operates on the individual series
 
             X[i] = X[i].str.strip()
             # Don't make lower case!!
             #X[i] = X[i].str.lower()
             
-            logger.debug('Calculating strlength on %s', i)
-            out = np.c_[out, strlen(X[i])]
+            logger.debug('Calculating string length on %s', i)
+            string_length = strlen(X[i])
+            
+            logger.debug('Creating categorical var on %s', i)
+            string_length_binned = strlen_binned(string_length)
+            logger.debug('Created bins %s', pd.Series(string_length_binned).value_counts())
+            out = np.c_[out, string_length, string_length_binned]
             
             # Caps ratio
             logger.debug('Calculating capsratio on %s', i)
             out = np.c_[out, [capsratio(j) for j in X[i]]]
             
             # Exclamation ratio
-            #out = np.c_[out, [exclratio(j) for j in X[i]]]
-            #logger.debug('Calculated exclsratio on %s', i)
+            out = np.c_[out, [exclratio(j) for j in X[i]]]
+            logger.debug('Calculated exclsratio on %s', i)
         
         logger.debug('CommentFeatureAdder outputs object of %s', type(out))
         logger.debug('CommentFeatureAdder outputs object of shape %s', out.shape)
         logger.debug('CommentFeatureAdder converting %s nans to zeros.', np.isnan(out).sum())
         out = np.nan_to_num(out)
-        assert out.shape == (X.shape[0], X.shape[1] * 2), 'CommentFeatureAdder returned wrong shape'
+        assert out.shape == (X.shape[0], X.shape[1] * 4), 'CommentFeatureAdder returned wrong shape'
         return out
 
 
 def strlen(x):
-
+    '''
+    Note that this will fail if passed np.nan rather than None
+    for missing values.
+    '''
+    x[x.isnull()] = None
     out = [np.round(len(i), 4) if i is not None else 0 for i in x]
     return out
 
 def capsratio(x):
 
-    if isinstance(x, str):
+    if isinstance(x, str) and (len(x) > 0):
         out = sum([i.isupper() for i in x]) / len(x)
         out = np.round(out, 4)
     else:
@@ -280,10 +289,17 @@ def capsratio(x):
 
 def exclratio(x):
 
-    if isinstance(x, str):
+    if isinstance(x, str) and (len(x) > 0):
         out = sum([j == '!' for j in x]) / len(x)
         out = np.round(out, 4)
     else:
         out = 0
     return out
 
+def strlen_binned(string_length, ratio=0.1, cutoff=2.0):
+
+    string_length_binned = np.ceil(np.array(string_length) / ratio)
+    topbin = string_length_binned.max()
+    string_length_binned[string_length_binned >= cutoff] = topbin
+
+    return string_length_binned
