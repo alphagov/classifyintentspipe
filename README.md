@@ -25,7 +25,7 @@ See the instruction [here](https://github.com/kynan/nbstripout) for how to insta
 
 ### xgboost installation
 
-You face problems installing the python `xgboost` package. The following workaround will allow it to be install in a specified virtual environment:
+If you face problems installing the python `xgboost` package. The following workaround will allow it to be install in a specified virtual environment:
 
 ```
 git clone git@github.com:dmlc/xgboost.git
