@@ -1,8 +1,8 @@
 #!/usr/bin/env Rscript
 
-if("dplyr" %in% rownames(installed.packages()) == FALSE) {install.packages("dplyr")}
-if("readr" %in% rownames(installed.packages()) == FALSE) {install.packages("readr")}
-if("lubridate" %in% rownames(installed.packages()) == FALSE) {install.packages("lubridate")}
+if("dplyr" %in% rownames(installed.packages()) == FALSE) {install.packages("dplyr", repos="https://cloud.r-project.org/")}
+if("readr" %in% rownames(installed.packages()) == FALSE) {install.packages("readr", repos="https://cloud.r-project.org/")}
+if("lubridate" %in% rownames(installed.packages()) == FALSE) {install.packages("lubridate", repos="https://cloud.r-project.org/")}
 
 library(dplyr)
 library(readr)
