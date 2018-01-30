@@ -1,4 +1,4 @@
-[![GitHub tag](https://img.shields.io/github/tag/ukgovdatascience/classifyintentspipe.svg)](https://github.com/ukgovdatascience/classifyintentspipe/releases)
+[![GitHub tag](https://img.shields.io/github/tag/alphagov/classifyintentspipe.svg)](https://github.com/alphagov/classifyintentspipe/releases)
 
 # Using machine learning to classify user comments on gov.uk
 
@@ -13,7 +13,7 @@ Nominally this application requires the following:
 * Python 3.6.2
 
 I would recommend setting up an environment using anaconda or venv before proceeding. `pip install -r requirements.txt` can then be used to install the required packages.
-The only out of the ordinary requirement is the [classifyintents](https://github.com/ukgovdatascience/classifyintents) package, developed to handle the cleaning of the data; this is installed with the above step.
+The only out of the ordinary requirement is the [classifyintents](https://github.com/alphagov/classifyintents) package, developed to handle the cleaning of the data; this is installed with the above step.
 
 ## Instructions
 

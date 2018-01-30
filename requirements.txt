@@ -1,7 +1,7 @@
 appdirs==1.4.3
-git+https://github.com/ukgovdatascience/classifyintents.git
-git+git://github.com/ukgovdatascience/scrubadub.git
-git+git://github.com/ukgovdatascience/govukurllookup.git
+git+https://github.com/alphagov/classifyintents.git
+git+git://github.com/alphagov/scrubadub.git
+git+git://github.com/alphagov/govukurllookup.git
 deap==1.0.1
 numpy==1.11.2
 packaging==16.8
