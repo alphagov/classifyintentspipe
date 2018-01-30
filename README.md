@@ -2,6 +2,8 @@
 
 # Using machine learning to classify user comments on gov.uk
 
+**NOTE: WHEN DOWNLOADING NEW DATA FROM SMARTSURVEY, ENSURE THAT THE 'Display Columns Headings in One Row' CHECKBOX IS CHECKED, OTHERWISE THE DATA WILL BE IN THE WRONG FORMAT.**
+
 This repo contains code used to automate the classification of responses to the user intent survey conducted on GOV.UK.
 
 The project is described in the [blog post](https://gdsdata.blog.gov.uk/2016/12/20/using-machine-learning-to-classify-user-comments-on-gov-uk/)
